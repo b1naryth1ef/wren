@@ -1,0 +1,10 @@
+{
+  "name": "wren",
+  "description": "A D binding to wren",
+  "license": "MIT",
+  "authors": [
+    "Andrei Zbikowski <b1naryth1ef@gmail.com>"
+  ],
+  "targetType": "library",
+  "libs": ["wren"]
+}
