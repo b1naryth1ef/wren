@@ -101,19 +101,36 @@ unittest {
   assert(vm.interpret("1 + 1") == WrenInterpretResult.SUCCESS);
 
   vm = new VM;
-  assert(vm.interpret("class MyPlugin { static test(x, y) { x + y } }") == WrenInterpretResult.SUCCESS);
+  assert(vm.interpret(`
+    class MyClass {
+      construct new() {
+        _x = 1
+      }
 
+      add(y) {
+        return y + _x
+      }
+    }
+  `) == WrenInterpretResult.SUCCESS);
+
+
+  // Call the constructor
+  vm.slots = 1;
+  vm.getVariable("main", "MyClass", 0);
+  auto myClass = vm.getSlotHandle(0);
+  vm.setSlot(0, myClass);
+  auto newCallHandle = vm.getCallHandle("new()");
+  assert(vm.call(newCallHandle) == WrenInterpretResult.SUCCESS);
+
+  auto classInst = vm.getSlotHandle(0);
   vm.slots = 3;
-  vm.getVariable("main", "MyPlugin", 0);
 
-  auto pluginClass = vm.getSlotHandle(0);
-  vm.setSlot(0, pluginClass);
-
-  auto callHandle = vm.getCallHandle("test(_,_)");
+  vm.setSlot(0, classInst);
   vm.setSlot(1, 5);
-  vm.setSlot(2, 10);
 
-  assert(vm.call(callHandle) == WrenInterpretResult.SUCCESS);
-
-  writefln("wut: %s, result = %s", vm.slots, vm.getSlot(0));
+  auto addCallHandle = vm.getCallHandle("add(_)");
+  assert(vm.call(addCallHandle) == WrenInterpretResult.SUCCESS);
+  assert(vm.slots == 1);
+  assert(vm.getSlotType(0) == WrenType.NUM);
+  assert(vm.getSlot(0).get!double == 6);
 }
